@@ -1,0 +1,170 @@
+# inflow-put
+
+Write local changes back to the Inflow Inventory API. The write counterpart to [inflow-get](https://github.com/ldraney/inflow-get).
+
+## Architecture
+
+```
+inflow-api-types     (Zod schemas - both GET and PUT)
+       |
+       v
++------+------+
+|             |
+v             v
+inflow-get    inflow-put
+(read/sync)   (write-back)
+API -> SQLite SQLite -> API
+```
+
+## Purpose
+
+**Dual Goals:**
+
+1. **Working Library**: For every PUT schema in `inflow-api-types`, provide a tested write-back implementation
+2. **Living Documentation**: Integration tests serve as canonical examples of what fields each Inflow endpoint accepts
+
+This repo answers: *"How do I write to Inflow's API?"* — both as importable code and as reference examples.
+
+### Why This Matters
+
+- `inflow-api-types`: Provides `{Entity}PUT` Zod schemas and `{Entity}Constraints`
+- `inflow-get`: Reads from API, stores in SQLite
+- `inflow-put`: Reads from SQLite, writes back to API — **and proves it works via integration tests**
+
+## Testing Philosophy
+
+**Integration tests are the priority.** Once an API contract is validated, it stays stable for a long time.
+
+- Tests run against the real Inflow API (existing company is our test environment)
+- Each entity's test file demonstrates exactly what payloads work
+- Cleanup via deactivation (Inflow doesn't support deletion)
+- Tests are run intentionally during development, not necessarily on every CI run
+
+## Key Concepts
+
+### PUT Schemas
+
+Each entity with write support has in `inflow-api-types`:
+
+```javascript
+// products/put.js
+export const ProductPUT = z.object({...});
+
+export const ProductConstraints = {
+  readOnly: ['lastModifiedDateTime', 'lastModifiedById', ...],
+  immutable: ['itemType', 'trackSerials'],
+  required: {
+    create: ['productId', 'name', 'itemType'],
+    update: ['productId'],
+  },
+  nestedWithIds: ['prices', 'vendorItems', 'itemBoms', 'reorderSettings'],
+};
+```
+
+### Constraints
+
+- **readOnly**: Fields that cannot be sent in PUT requests (server-managed)
+- **immutable**: Fields that can only be set on create, not updated
+- **required.create**: Fields required when creating a new entity
+- **required.update**: Fields required when updating an existing entity
+- **nestedWithIds**: Arrays that use ID-based upsert/delete logic
+
+## Structure
+
+```
+inflow-put/
+├── package.json
+├── tsconfig.json
+├── CLAUDE.md
+├── src/
+│   ├── index.ts           # Library exports
+│   ├── api/
+│   │   └── client.ts      # Inflow API PUT client
+│   ├── entities/
+│   │   ├── products.ts    # Product write-back
+│   │   ├── vendors.ts     # Vendor write-back
+│   │   ├── customers.ts   # Customer write-back
+│   │   ├── ...            # One file per entity
+│   │   └── index.ts       # Entity exports
+│   └── utils/
+│       ├── payload.ts     # Build payloads respecting constraints
+│       └── validate.ts    # Validate against PUT schemas
+└── tests/
+    └── integration/
+        ├── products.test.ts      # Real API tests - also serves as examples
+        ├── vendors.test.ts
+        ├── customers.test.ts
+        ├── ...                   # One test file per entity
+        └── helpers/
+            └── setup.ts          # API client setup, cleanup utilities
+```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `INFLOW_API_KEY` | Yes | Inflow API key |
+| `INFLOW_COMPANY_ID` | Yes | Inflow company GUID |
+
+## Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `inflow-api-types` | PUT Zod schemas and constraints |
+| `inflow-get` | SQLite database access |
+| `typescript` | Type checking (dev) |
+| `tsx` | Run TypeScript directly (dev) |
+
+## Roadmap
+
+All 16 entities from `inflow-api-types` organized by complexity and dependency.
+
+### Phase 1: Infrastructure
+- [ ] API client for PUT requests
+- [ ] Payload builder (respects readOnly, immutable, required constraints)
+- [ ] Test harness setup (vitest or similar)
+
+### Phase 2: Core Master Data (3 entities)
+Simple entities, foundational for orders.
+
+| Entity | Nested Arrays | Status |
+|--------|---------------|--------|
+| Customers | `addresses` | [ ] |
+| Vendors | `addresses`, `vendorItems` | [ ] |
+| Products | `prices`, `productBarcodes`, `vendorItems`, `itemBoms`, `productOperations`, `reorderSettings`, `taxCodes` | [ ] |
+
+### Phase 3: Inventory Operations (5 entities)
+Stock movement and counting.
+
+| Entity | Nested Arrays | Status |
+|--------|---------------|--------|
+| Stock Adjustments | `lines` | [ ] |
+| Stock Transfers | `lines` | [ ] |
+| Product Cost Adjustments | (none) | [ ] |
+| Count Sheets | `lines` | [ ] |
+| Stock Counts | `sheets` → `lines` (nested) | [ ] |
+
+### Phase 4: Order Management (3 entities)
+Complex entities with multiple line types.
+
+| Entity | Nested Arrays | Status |
+|--------|---------------|--------|
+| Purchase Orders | `lines`, `receiveLines`, `unstockLines` | [ ] |
+| Sales Orders | `lines`, `pickLines`, `packLines`, `shipLines`, `restockLines` | [ ] |
+| Manufacturing Orders | `lines` → `manufacturingOrderOperations`, `pickLines`, `putLines`, `pickMatchings` | [ ] |
+
+### Phase 5: Configuration & Specialty (5 entities)
+System configuration and specialized endpoints.
+
+| Entity | Notes | Status |
+|--------|-------|--------|
+| Custom Field Definitions | Define custom fields | [ ] |
+| Custom Field Dropdown Options | Dropdown values for custom fields | [ ] |
+| Custom Fields | Print label settings | [ ] |
+| Webhooks | Event subscriptions | [ ] |
+| Stockroom Scans | Mobile app scans (ObjectSubset format) | [ ] |
+
+### Phase 6: Advanced Features (Optional)
+- [ ] Diff engine (detect local vs remote changes)
+- [ ] Batch operations
+- [ ] Conflict resolution strategies
