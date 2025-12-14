@@ -1,12 +1,23 @@
 {
   "name": "inflow-put",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Write local SQLite changes back to the Inflow Inventory API",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest"
   },
   "dependencies": {
     "inflow-api-types": "github:ldraney/inflow-api-types",
@@ -15,6 +26,7 @@
   "devDependencies": {
     "@types/node": "^25.0.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.1.0"
   }
 }
