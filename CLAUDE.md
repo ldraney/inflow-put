@@ -166,6 +166,25 @@ npm publish                   # ships dist/, not src/
 
 Consumers install the package and get full TypeScript support without needing `tsx`.
 
+## Definition of Done
+
+**Per Entity (16 total):**
+- `put{Entity}` function exists and is exported
+- Integration test covers: create → update → deactivate
+- Test passes against real Inflow API
+
+**For the Repo:**
+- All 16 entity functions exported from `src/index.ts`
+- All integration tests pass
+- `npm run build` succeeds (dist/ generated)
+- Published to npm
+
+**Completion = a published npm package where consumers can:**
+```typescript
+import { createClient, putProduct, putVendor, putCustomer, ... } from 'inflow-put'
+```
+...for all 16 entities, with confidence it works because integration tests prove it.
+
 ## Roadmap
 
 All 16 entities from `inflow-api-types` organized by complexity and dependency.
