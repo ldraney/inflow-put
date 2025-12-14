@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inflow User Stories & Architecture</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --surface: #16213e;
+      --primary: #0f3460;
+      --accent: #e94560;
+      --accent2: #00d9ff;
+      --text: #eaeaea;
+      --text-muted: #a0a0a0;
+      --code-bg: #0d1117;
+      --success: #00c853;
+      --warning: #ffc107;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 0.5rem;
+    }
+
+    h2 {
+      color: var(--accent);
+      margin-top: 3rem;
+    }
+
+    h3 {
+      color: var(--accent2);
+      margin-top: 2rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      margin-top: -0.5rem;
+    }
+
+    .mermaid {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      overflow-x: auto;
+      border-left: 3px solid var(--accent);
+    }
+
+    code {
+      font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+      font-size: 0.9rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      background: var(--surface);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--primary);
+    }
+
+    th {
+      background: var(--primary);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .story {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      border-left: 4px solid var(--accent2);
+    }
+
+    .story.get-only {
+      border-left-color: var(--accent2);
+    }
+
+    .story.put-only {
+      border-left-color: var(--accent);
+    }
+
+    .story.both {
+      border-left-color: var(--success);
+    }
+
+    .story h4 {
+      margin: 0 0 0.5rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .story p {
+      margin: 0.5rem 0;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .badge.get {
+      background: var(--accent2);
+      color: var(--bg);
+    }
+
+    .badge.put {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .badge.both {
+      background: var(--success);
+      color: var(--bg);
+    }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .highlight2 {
+      color: var(--accent2);
+      font-weight: 600;
+    }
+
+    .pro-con {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .pro, .con {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .pro {
+      border-top: 3px solid var(--success);
+    }
+
+    .con {
+      border-top: 3px solid var(--accent);
+    }
+
+    .pro h4, .con h4 {
+      margin: 0 0 0.5rem 0;
+    }
+
+    .pro h4 { color: var(--success); }
+    .con h4 { color: var(--accent); }
+
+    .pro ul, .con ul {
+      margin: 0;
+      padding-left: 1.2rem;
+      color: var(--text-muted);
+    }
+
+    .verdict {
+      background: linear-gradient(135deg, var(--primary), var(--surface));
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .verdict h3 {
+      color: var(--accent);
+      margin-top: 0;
+    }
+
+    .architecture-option {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .architecture-option h4 {
+      color: var(--accent2);
+      margin: 0 0 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>User Stories & Architecture Analysis</h1>
+    <p class="subtitle">Should inflow-get and inflow-put be separate libraries?</p>
+
+    <h2>Real User Stories</h2>
+    <p>Who actually uses Inflow, and what do they need?</p>
+
+    <div class="story get-only">
+      <h4><span class="badge get">GET ONLY</span> Reporting Dashboard</h4>
+      <p><strong>As a</strong> warehouse manager, <strong>I want</strong> to see inventory levels, sales trends, and reorder alerts <strong>so that</strong> I can make informed decisions.</p>
+      <p><em>Needs: Query products, orders, inventory. Never writes.</em></p>
+    </div>
+
+    <div class="story get-only">
+      <h4><span class="badge get">GET ONLY</span> BI/Analytics Integration</h4>
+      <p><strong>As a</strong> data analyst, <strong>I want</strong> Inflow data in our data warehouse <strong>so that</strong> I can build cross-system reports.</p>
+      <p><em>Needs: Periodic sync to Snowflake/BigQuery. Read-only export.</em></p>
+    </div>
+
+    <div class="story get-only">
+      <h4><span class="badge get">GET ONLY</span> Product Catalog for Website</h4>
+      <p><strong>As a</strong> web developer, <strong>I want</strong> product data with prices and stock levels <strong>so that</strong> my e-commerce site shows accurate info.</p>
+      <p><em>Needs: Products, prices, inventory. Updates happen in Inflow UI.</em></p>
+    </div>
+
+    <div class="story put-only">
+      <h4><span class="badge put">PUT ONLY</span> CSV Import Tool</h4>
+      <p><strong>As an</strong> operations manager, <strong>I want</strong> to bulk import products from a spreadsheet <strong>so that</strong> I don't have to enter them manually.</p>
+      <p><em>Needs: Create products, vendors, customers from CSV. Minimal reads (maybe SKU lookup).</em></p>
+    </div>
+
+    <div class="story put-only">
+      <h4><span class="badge put">PUT ONLY</span> Migration from Legacy System</h4>
+      <p><strong>As a</strong> new Inflow customer, <strong>I want</strong> to migrate from our old system <strong>so that</strong> we don't lose historical data.</p>
+      <p><em>Needs: One-time bulk create of all entities. Heavy PUT.</em></p>
+    </div>
+
+    <div class="story both">
+      <h4><span class="badge both">GET + PUT</span> E-commerce Order Sync</h4>
+      <p><strong>As a</strong> Shopify store owner, <strong>I want</strong> orders to flow into Inflow automatically <strong>so that</strong> inventory stays accurate.</p>
+      <p><em>Needs: Lookup customer/product IDs (GET), create sales orders (PUT).</em></p>
+    </div>
+
+    <div class="story both">
+      <h4><span class="badge both">GET + PUT</span> Warehouse Scanner App</h4>
+      <p><strong>As a</strong> warehouse worker, <strong>I want</strong> to scan barcodes and adjust inventory <strong>so that</strong> counts stay accurate.</p>
+      <p><em>Needs: Lookup product by barcode (GET), create stock adjustments (PUT).</em></p>
+    </div>
+
+    <div class="story both">
+      <h4><span class="badge both">GET + PUT</span> Bulk Price Update Tool</h4>
+      <p><strong>As a</strong> pricing manager, <strong>I want</strong> to update prices by category or percentage <strong>so that</strong> I don't edit each product manually.</p>
+      <p><em>Needs: Query products by category (GET), update prices (PUT).</em></p>
+    </div>
+
+    <div class="story both">
+      <h4><span class="badge both">GET + PUT</span> AI Inventory Assistant</h4>
+      <p><strong>As a</strong> business owner, <strong>I want</strong> to ask Claude "reorder products below threshold" <strong>so that</strong> I can manage inventory conversationally.</p>
+      <p><em>Needs: Query current levels (GET), create purchase orders (PUT).</em></p>
+    </div>
+
+    <div class="story get-only">
+      <h4><span class="badge get">GET ONLY</span> Database Artifact for Other Teams</h4>
+      <p><strong>As a</strong> backend team, <strong>I want</strong> to publish a versioned SQLite snapshot <strong>so that</strong> other services can query without API credentials.</p>
+      <p><em>Needs: Seed once, publish inflow.db as release artifact. Consumers only read.</em></p>
+    </div>
+
+    <h2>Story Distribution</h2>
+
+    <div class="mermaid">
+pie showData
+    title "What Do Users Need?"
+    "GET only" : 4
+    "PUT only" : 2
+    "Both" : 4
+    </div>
+
+    <table>
+      <tr>
+        <th>Pattern</th>
+        <th>Count</th>
+        <th>Examples</th>
+      </tr>
+      <tr>
+        <td><span class="badge get">GET ONLY</span></td>
+        <td>4</td>
+        <td>Dashboards, BI, Product catalog, DB artifact</td>
+      </tr>
+      <tr>
+        <td><span class="badge put">PUT ONLY</span></td>
+        <td>2</td>
+        <td>CSV import, Data migration</td>
+      </tr>
+      <tr>
+        <td><span class="badge both">BOTH</span></td>
+        <td>4</td>
+        <td>E-commerce sync, Scanner app, Price updates, AI assistant</td>
+      </tr>
+    </table>
+
+    <h2>The Split Question</h2>
+
+    <h3>Option A: Two Separate Libraries (Current)</h3>
+
+    <div class="architecture-option">
+      <h4>inflow-get + inflow-put</h4>
+      <div class="mermaid">
+flowchart LR
+    subgraph consumer["Consumer App"]
+        APP["Your Code"]
+    end
+
+    GET["inflow-get<br/><small>npm install</small>"]
+    PUT["inflow-put<br/><small>npm install</small>"]
+
+    APP --> GET
+    APP --> PUT
+
+    style GET fill:#0f3460,stroke:#00d9ff
+    style PUT fill:#0f3460,stroke:#e94560
+      </div>
+    </div>
+
+    <div class="pro-con">
+      <div class="pro">
+        <h4>Pros</h4>
+        <ul>
+          <li>Install only what you need</li>
+          <li>Smaller bundle for read-only apps</li>
+          <li>Clear separation of concerns</li>
+          <li>Independent versioning</li>
+          <li>DB artifact pattern: publish SQLite, consumers use inflow-get only</li>
+        </ul>
+      </div>
+      <div class="con">
+        <h4>Cons</h4>
+        <ul>
+          <li>Two packages to install for full functionality</li>
+          <li>Version coordination needed</li>
+          <li>~60% of users need both anyway</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Option B: Single Combined Library</h3>
+
+    <div class="architecture-option">
+      <h4>inflow (get + put combined)</h4>
+      <div class="mermaid">
+flowchart LR
+    subgraph consumer["Consumer App"]
+        APP["Your Code"]
+    end
+
+    INFLOW["inflow<br/><small>npm install</small>"]
+
+    APP --> INFLOW
+
+    style INFLOW fill:#0f3460,stroke:#e94560
+      </div>
+    </div>
+
+    <div class="pro-con">
+      <div class="pro">
+        <h4>Pros</h4>
+        <ul>
+          <li>One package to install</li>
+          <li>Guaranteed compatible versions</li>
+          <li>Simpler mental model</li>
+        </ul>
+      </div>
+      <div class="con">
+        <h4>Cons</h4>
+        <ul>
+          <li>40% of users install unused code</li>
+          <li>Larger bundle always</li>
+          <li>Can't publish DB artifact pattern cleanly</li>
+          <li>Muddier API surface</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Option C: Monorepo with Selective Exports</h3>
+
+    <div class="architecture-option">
+      <h4>@inflow/get + @inflow/put (scoped packages)</h4>
+      <div class="mermaid">
+flowchart LR
+    subgraph mono["Monorepo"]
+        GET["@inflow/get"]
+        PUT["@inflow/put"]
+        TYPES["@inflow/types<br/><small>internal</small>"]
+    end
+
+    TYPES --> GET
+    TYPES --> PUT
+
+    style GET fill:#0f3460,stroke:#00d9ff
+    style PUT fill:#0f3460,stroke:#e94560
+    style TYPES fill:#1a1a2e,stroke:#a0a0a0,stroke-dasharray: 5 5
+      </div>
+    </div>
+
+    <div class="pro-con">
+      <div class="pro">
+        <h4>Pros</h4>
+        <ul>
+          <li>Scoped naming (@inflow/*)</li>
+          <li>Monorepo = coordinated releases</li>
+          <li>Still selective installs</li>
+          <li>Shared tooling/CI</li>
+        </ul>
+      </div>
+      <div class="con">
+        <h4>Cons</h4>
+        <ul>
+          <li>More complex repo setup</li>
+          <li>npm org needed for @inflow scope</li>
+          <li>Overkill for 2-3 packages?</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>The Database Artifact Pattern</h2>
+    <p>This is the compelling case for the split:</p>
+
+    <div class="mermaid">
+flowchart TB
+    subgraph backend["Backend Team"]
+        SEED["Seeder Service"]
+        GET1["inflow-get"]
+        SEED --> GET1
+        GET1 --> DB[(inflow.db)]
+        DB -->|"publish"| RELEASE["GitHub Release<br/>v2024.12.14"]
+    end
+
+    subgraph consumers["Consumer Services"]
+        subgraph svc1["Reporting Service"]
+            GET2["inflow-get"]
+            DB1[(local copy)]
+        end
+
+        subgraph svc2["Product Catalog API"]
+            GET3["inflow-get"]
+            DB2[(local copy)]
+        end
+
+        subgraph svc3["Order Sync Service"]
+            GET4["inflow-get"]
+            PUT1["inflow-put"]
+            DB3[(local copy)]
+        end
+    end
+
+    RELEASE -->|"download"| DB1
+    RELEASE -->|"download"| DB2
+    RELEASE -->|"download"| DB3
+
+    PUT1 -->|"PUT"| API[("Inflow API")]
+
+    style backend fill:#16213e,stroke:#00d9ff
+    style consumers fill:#16213e,stroke:#e94560
+    style RELEASE fill:#0f3460,stroke:#00c853
+    </div>
+
+    <div class="card">
+      <h4>How This Works</h4>
+      <ol>
+        <li><strong>Backend team</strong> runs seeder nightly, publishes <code>inflow.db</code> as release artifact</li>
+        <li><strong>Read-only services</strong> download the DB, use <span class="highlight2">inflow-get</span> for queries (no API credentials needed!)</li>
+        <li><strong>Write services</strong> also use <span class="highlight">inflow-put</span> when they need to push changes</li>
+      </ol>
+      <p>This pattern only works cleanly with separate libraries. A combined lib would force read-only services to have PUT code they never use.</p>
+    </div>
+
+    <h2>Dependency Graph</h2>
+
+    <div class="mermaid">
+flowchart BT
+    subgraph published["Published to npm"]
+        GET["inflow-get"]
+        PUT["inflow-put"]
+    end
+
+    subgraph internal["Internal / GitHub only"]
+        TYPES["inflow-api-types"]
+    end
+
+    TYPES -->|"Zod schemas"| GET
+    TYPES -->|"PUT schemas + constraints"| PUT
+    GET -.->|"peer dep?"| PUT
+
+    DRIZZLE["drizzle-orm"]
+    SQLITE["better-sqlite3"]
+    ZOD["zod"]
+
+    DRIZZLE --> GET
+    SQLITE --> GET
+    ZOD --> TYPES
+
+    style published fill:#16213e,stroke:#00c853
+    style internal fill:#16213e,stroke:#a0a0a0,stroke-dasharray: 5 5
+    </div>
+
+    <p><strong>Note:</strong> <code>inflow-put</code> might want <code>inflow-get</code> as a peer dependency for the "lookup ID then PUT" pattern, but shouldn't require it.</p>
+
+    <div class="verdict">
+      <h3>Verdict: Keep the Split</h3>
+      <p>The separation provides real value:</p>
+      <ul>
+        <li><strong>40% of users</strong> only need read — they shouldn't install PUT code</li>
+        <li><strong>Database artifact pattern</strong> is a powerful distribution model</li>
+        <li><strong>Conceptually clean</strong> — read and write are different operations</li>
+        <li><strong>Versioning flexibility</strong> — PUT schemas change less often than GET features</li>
+      </ul>
+      <p>The "install two packages" friction is minor compared to the architectural clarity gained.</p>
+    </div>
+
+    <h2>Recommended Package Structure</h2>
+
+    <table>
+      <tr>
+        <th>Package</th>
+        <th>Purpose</th>
+        <th>Published?</th>
+        <th>Consumers</th>
+      </tr>
+      <tr>
+        <td><code>inflow-api-types</code></td>
+        <td>Zod schemas for API</td>
+        <td>GitHub only</td>
+        <td>inflow-get, inflow-put</td>
+      </tr>
+      <tr>
+        <td><code class="highlight2">inflow-get</code></td>
+        <td>Seed + query SQLite</td>
+        <td>npm</td>
+        <td>All users</td>
+      </tr>
+      <tr>
+        <td><code class="highlight">inflow-put</code></td>
+        <td>Write back to API</td>
+        <td>npm</td>
+        <td>Users who need writes</td>
+      </tr>
+    </table>
+
+    <h2>Installation Patterns</h2>
+
+    <pre><code># Read-only app (dashboards, BI, catalog)
+npm install inflow-get
+
+# Full read/write app (sync tools, AI assistants)
+npm install inflow-get inflow-put
+
+# Write-heavy with minimal reads (migrations, imports)
+npm install inflow-put
+# (may need inflow-get for ID lookups)</code></pre>
+
+    <h2>Summary</h2>
+
+    <div class="mermaid">
+quadrantChart
+    title Library Split Analysis
+    x-axis "Few Users Need" --> "Most Users Need"
+    y-axis "Simple to Combine" --> "Complex to Combine"
+    quadrant-1 Keep Split
+    quadrant-2 Consider Combining
+    quadrant-3 Definitely Combine
+    quadrant-4 Keep Split
+    "GET + PUT": [0.6, 0.7]
+    </div>
+
+    <div class="card">
+      <p style="text-align: center; font-size: 1.1rem;">
+        <span class="highlight2">inflow-get</span> = Your data, locally, instantly.<br/>
+        <span class="highlight">inflow-put</span> = Your changes, validated, sent back.<br/>
+        <strong>Two libraries, two jobs, both useful independently.</strong>
+      </p>
+    </div>
+
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#0f3460',
+        primaryTextColor: '#eaeaea',
+        primaryBorderColor: '#e94560',
+        lineColor: '#e94560',
+        secondaryColor: '#16213e',
+        tertiaryColor: '#1a1a2e',
+        background: '#1a1a2e',
+        mainBkg: '#16213e',
+        nodeBorder: '#e94560',
+        clusterBkg: '#16213e',
+        clusterBorder: '#e94560',
+        titleColor: '#e94560',
+        edgeLabelBackground: '#16213e',
+        pie1: '#00d9ff',
+        pie2: '#e94560',
+        pie3: '#00c853',
+      }
+    });
+  </script>
+</body>
+</html>
