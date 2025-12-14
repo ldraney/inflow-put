@@ -31,6 +31,31 @@ This repo answers: *"How do I write to Inflow's API?"* — both as importable co
 - `inflow-get`: Reads from API, stores in SQLite
 - `inflow-put`: Reads from SQLite, writes back to API — **and proves it works via integration tests**
 
+### Value to Consumers
+
+The library exports typed, tested functions. Consuming apps (and AIs writing code) get:
+
+```typescript
+import { createClient, putProduct } from 'inflow-put'
+
+const client = createClient({ apiKey: '...', companyId: '...' })
+
+await putProduct(client, {
+  productId: '...',
+  name: 'Widget',
+  itemType: 'Inventory',
+  // ^ TypeScript autocomplete shows valid fields
+  // ^ Runtime validation before API call
+  // ^ Errors are meaningful
+})
+```
+
+**What this provides:**
+- **Confidence** — if it compiles and passes Zod, it will work
+- **Discovery** — types show what's possible without reading docs
+- **No guessing** — constraints are built-in, not documented somewhere else
+- **Tested contract** — integration tests prove the library matches reality
+
 ## Testing Philosophy
 
 **Integration tests are the priority.** Once an API contract is validated, it stays stable for a long time.
@@ -76,27 +101,29 @@ inflow-put/
 ├── package.json
 ├── tsconfig.json
 ├── CLAUDE.md
-├── src/
-│   ├── index.ts           # Library exports
-│   ├── api/
-│   │   └── client.ts      # Inflow API PUT client
+├── src/                           # Source (TypeScript)
+│   ├── index.ts                   # Library exports
+│   ├── client.ts                  # Inflow API PUT client
 │   ├── entities/
-│   │   ├── products.ts    # Product write-back
-│   │   ├── vendors.ts     # Vendor write-back
-│   │   ├── customers.ts   # Customer write-back
-│   │   ├── ...            # One file per entity
-│   │   └── index.ts       # Entity exports
+│   │   ├── products.ts            # putProduct function
+│   │   ├── vendors.ts             # putVendor function
+│   │   ├── customers.ts           # putCustomer function
+│   │   ├── ...                    # One file per entity
+│   │   └── index.ts               # Entity exports
 │   └── utils/
-│       ├── payload.ts     # Build payloads respecting constraints
-│       └── validate.ts    # Validate against PUT schemas
+│       ├── payload.ts             # Build payloads respecting constraints
+│       └── validate.ts            # Validate against PUT schemas
+├── dist/                          # Compiled output (generated, published)
+│   ├── index.js                   # JavaScript
+│   └── index.d.ts                 # Type declarations
 └── tests/
     └── integration/
-        ├── products.test.ts      # Real API tests - also serves as examples
+        ├── products.test.ts       # Real API tests - also serves as examples
         ├── vendors.test.ts
         ├── customers.test.ts
-        ├── ...                   # One test file per entity
+        ├── ...                    # One test file per entity
         └── helpers/
-            └── setup.ts          # API client setup, cleanup utilities
+            └── setup.ts           # API client setup, cleanup utilities
 ```
 
 ## Environment Variables
@@ -114,6 +141,30 @@ inflow-put/
 | `inflow-get` | SQLite database access |
 | `typescript` | Type checking (dev) |
 | `tsx` | Run TypeScript directly (dev) |
+| `vitest` | Test runner (dev) |
+
+## Development Workflow
+
+**Two modes:** `tsx` for development speed, `dist/` for publishing.
+
+```bash
+# Development - run TypeScript directly (no build step)
+npx tsx src/index.ts
+npx vitest                    # run tests
+
+# Publishing - compile to dist/
+npm run build                 # tsc -> dist/
+npm publish                   # ships dist/, not src/
+```
+
+**What gets published:**
+
+| File | Purpose |
+|------|---------|
+| `dist/*.js` | Compiled JavaScript (what runs) |
+| `dist/*.d.ts` | Type declarations (what editors see) |
+
+Consumers install the package and get full TypeScript support without needing `tsx`.
 
 ## Roadmap
 
