@@ -5,6 +5,9 @@ Write local changes back to the Inflow Inventory API. The write counterpart to [
 ## Architecture
 
 ```
+inflow-client        (HTTP client for Inflow API)
+       |
+       v
 inflow-api-types     (Zod schemas - both GET and PUT)
        |
        v
@@ -28,6 +31,7 @@ This repo answers: *"How do I write to Inflow's API?"* — both as importable co
 ### Why This Matters
 
 - `inflow-api-types`: Provides `{Entity}PUT` Zod schemas and `{Entity}Constraints`
+- `inflow-client`: Shared HTTP client for Inflow API (used by both inflow-get and inflow-put)
 - `inflow-get`: Reads from API, stores in SQLite
 - `inflow-put`: Reads from SQLite, writes back to API — **and proves it works via integration tests**
 
@@ -36,7 +40,8 @@ This repo answers: *"How do I write to Inflow's API?"* — both as importable co
 The library exports typed, tested functions. Consuming apps (and AIs writing code) get:
 
 ```typescript
-import { createClient, putProduct } from 'inflow-put'
+import { createClient } from 'inflow-client'
+import { putProduct } from 'inflow-put'
 
 const client = createClient({ apiKey: '...', companyId: '...' })
 
@@ -103,28 +108,25 @@ inflow-put/
 ├── CLAUDE.md
 ├── src/                           # Source (TypeScript)
 │   ├── index.ts                   # Library exports
-│   ├── client.ts                  # Inflow API PUT client
 │   ├── entities/
-│   │   ├── products.ts            # putProduct function
-│   │   ├── vendors.ts             # putVendor function
 │   │   ├── customers.ts           # putCustomer function
-│   │   ├── ...                    # One file per entity
+│   │   ├── ...                    # One file per entity (added as implemented)
 │   │   └── index.ts               # Entity exports
 │   └── utils/
 │       ├── payload.ts             # Build payloads respecting constraints
-│       └── validate.ts            # Validate against PUT schemas
+│       └── index.ts               # Utils exports
 ├── dist/                          # Compiled output (generated, published)
 │   ├── index.js                   # JavaScript
 │   └── index.d.ts                 # Type declarations
 └── tests/
     └── integration/
-        ├── products.test.ts       # Real API tests - also serves as examples
-        ├── vendors.test.ts
-        ├── customers.test.ts
-        ├── ...                    # One test file per entity
+        ├── customers.test.ts      # Real API tests - also serves as examples
+        ├── ...                    # One test file per entity (added as implemented)
         └── helpers/
             └── setup.ts           # API client setup, cleanup utilities
 ```
+
+Note: API client functionality is provided by `inflow-client` package, not built into this repo.
 
 ## Environment Variables
 
@@ -138,7 +140,7 @@ inflow-put/
 | Package | Purpose |
 |---------|---------|
 | `inflow-api-types` | PUT Zod schemas and constraints |
-| `inflow-get` | SQLite database access |
+| `inflow-client` | HTTP client for Inflow API |
 | `typescript` | Type checking (dev) |
 | `tsx` | Run TypeScript directly (dev) |
 | `vitest` | Test runner (dev) |
@@ -181,7 +183,8 @@ Consumers install the package and get full TypeScript support without needing `t
 
 **Completion = a published npm package where consumers can:**
 ```typescript
-import { createClient, putProduct, putVendor, putCustomer, ... } from 'inflow-put'
+import { createClient } from 'inflow-client'
+import { putProduct, putVendor, putCustomer, ... } from 'inflow-put'
 ```
 ...for all 16 entities, with confidence it works because integration tests prove it.
 
@@ -190,16 +193,16 @@ import { createClient, putProduct, putVendor, putCustomer, ... } from 'inflow-pu
 All 16 entities from `inflow-api-types` organized by complexity and dependency.
 
 ### Phase 1: Infrastructure
-- [ ] API client for PUT requests
-- [ ] Payload builder (respects readOnly, immutable, required constraints)
-- [ ] Test harness setup (vitest or similar)
+- [x] API client for PUT requests (via `inflow-client` package)
+- [x] Payload builder (respects readOnly, immutable, required constraints)
+- [x] Test harness setup (vitest)
 
 ### Phase 2: Core Master Data (3 entities)
 Simple entities, foundational for orders.
 
 | Entity | Nested Arrays | Status |
 |--------|---------------|--------|
-| Customers | `addresses` | [ ] |
+| Customers | `addresses` | [x] |
 | Vendors | `addresses`, `vendorItems` | [ ] |
 | Products | `prices`, `productBarcodes`, `vendorItems`, `itemBoms`, `productOperations`, `reorderSettings`, `taxCodes` | [ ] |
 

@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "inflow-api-types": "github:ldraney/inflow-api-types",
-    "inflow-client": "github:ldraney/inflow-client"
+    "inflow-client": "^0.1.0"
   },
   "devDependencies": {
     "@types/node": "^25.0.0",
