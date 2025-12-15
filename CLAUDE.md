@@ -40,19 +40,17 @@ This repo answers: *"How do I write to Inflow's API?"* — both as importable co
 The library exports typed, tested functions. Consuming apps (and AIs writing code) get:
 
 ```typescript
-import { createClient } from 'inflow-client'
 import { putProduct } from 'inflow-put'
 
-const client = createClient({ apiKey: '...', companyId: '...' })
-
-await putProduct(client, {
+// Requires INFLOW_API_KEY and INFLOW_COMPANY_ID env vars
+await putProduct({
   productId: '...',
   name: 'Widget',
-  itemType: 'Inventory',
+  itemType: 'stockedProduct',
   // ^ TypeScript autocomplete shows valid fields
   // ^ Runtime validation before API call
   // ^ Errors are meaningful
-})
+}, 'create')
 ```
 
 **What this provides:**
@@ -183,7 +181,6 @@ Consumers install the package and get full TypeScript support without needing `t
 
 **Completion = a published npm package where consumers can:**
 ```typescript
-import { createClient } from 'inflow-client'
 import { putProduct, putVendor, putCustomer, ... } from 'inflow-put'
 ```
 ...for all 16 entities, with confidence it works because integration tests prove it.
@@ -203,8 +200,8 @@ Simple entities, foundational for orders.
 | Entity | Nested Arrays | Status |
 |--------|---------------|--------|
 | Customers | `addresses` | [x] |
-| Vendors | `addresses`, `vendorItems` | [ ] |
-| Products | `prices`, `productBarcodes`, `vendorItems`, `itemBoms`, `productOperations`, `reorderSettings`, `taxCodes` | [ ] |
+| Vendors | `addresses`, `vendorItems` | [x] |
+| Products | `prices`, `productBarcodes`, `vendorItems`, `itemBoms`, `productOperations`, `reorderSettings`, `taxCodes` | [x] |
 
 ### Phase 3: Inventory Operations (5 entities)
 Stock movement and counting.

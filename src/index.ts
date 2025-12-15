@@ -11,6 +11,8 @@ export {
   type CustomerInput,
   putVendor,
   type VendorInput,
+  putProduct,
+  type ProductInput,
 } from './entities/index.js';
 
 // Utilities (for advanced usage)
